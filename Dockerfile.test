@@ -1,0 +1,21 @@
+FROM python:3.12-slim
+
+WORKDIR /workspace
+
+# Copy dependencies
+COPY requirements.txt dev-requirements.txt ./
+
+# Install dependencies + dev tools
+RUN pip install --upgrade pip \
+    && pip install -r requirements.txt \
+    && pip install -r dev-requirements.txt \
+    && pip install pytest httpx bandit pip-audit 
+# Copy source code + tests
+COPY app ./app
+COPY tests ./tests
+
+# Set PYTHONPATH supaya module 'app' dikenali
+ENV PYTHONPATH=/workspace
+
+# Default CMD: run tests + security scan
+CMD ["sh", "-c", "pytest tests && bandit -r app/ && pip-audit && gitleaks detect"]
