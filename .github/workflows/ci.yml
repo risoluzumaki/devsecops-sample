@@ -57,7 +57,7 @@ jobs:
         run: pip-audit
 
       - name: Run Secret Scan (Gitleaks)
-        uses: zricethezav/gitleaks-action@v8
+        uses: gitleaks/gitleaks-action@v2
 
 
   docker-build-push:
