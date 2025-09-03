@@ -76,10 +76,10 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -f Dockerfile -t myusername/notes-app:latest .
+          docker build -f Dockerfile -t ${{ secrets.DOCKER_USERNNAME }}/notes-app:latest .
 
       - name: Push Docker image
-        run: docker push myusername/notes-app:latest
+        run: docker push ${{ secrets.DOCKER_USERNNAME }}/notes-app:latest
 
   docker-scan:
     name: Scan Docker Image
@@ -89,6 +89,6 @@ jobs:
       - name: Install Trivy
         uses: aquasecurity/trivy-action@v2
         with:
-          image-ref: myusername/notes-app:latest
+          image-ref: ${{ secrets.DOCKER_USERNNAME }}/notes-app:latest
           format: table
           exit-code: 1 
