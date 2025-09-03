@@ -76,10 +76,10 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -f Dockerfile -t ${{ secrets.DOCKER_USERNNAME }}/notes-app:latest .
+          docker build -f Dockerfile -t ${{ secrets.DOCKER_USERNAME }}/notes-app:latest .
 
       - name: Push Docker image
-        run: docker push ${{ secrets.DOCKER_USERNNAME }}/notes-app:latest
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/notes-app:latest
 
   docker-scan:
     name: Scan Docker Image
