@@ -1,0 +1,92 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - test
+  pull_request:
+
+jobs:
+  unit-test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.12
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r dev-requirements.txt
+          pip install pytest httpx
+
+      - name: Run Unit Tests
+        run: pytest tests
+
+  sast-sca:
+    name: SAST & SCA
+    runs-on: ubuntu-latest
+    needs: unit-test  
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.12
+
+      - name: Install security tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install bandit pip-audit
+
+      - name: Run SAST (Bandit)
+        run: bandit -r app/
+
+      - name: Run SCA (pip-audit)
+        run: pip-audit
+
+      - name: Run Secret Scan (Gitleaks)
+        uses: zricethezav/gitleaks-action@v8
+
+
+  docker-build-push:
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+    needs: sast-sca
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Log in to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build Docker image
+        run: |
+          docker build -f Dockerfile -t myusername/notes-app:latest .
+
+      - name: Push Docker image
+        run: docker push myusername/notes-app:latest
+
+  docker-scan:
+    name: Scan Docker Image
+    runs-on: ubuntu-latest
+    needs: docker-build-push
+    steps:
+      - name: Install Trivy
+        uses: aquasecurity/trivy-action@v2
+        with:
+          image-ref: myusername/notes-app:latest
+          format: table
+          exit-code: 1 
