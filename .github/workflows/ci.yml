@@ -29,6 +29,8 @@ jobs:
 
       - name: Run Unit Tests
         run: pytest tests
+        env:
+            PYTHONPATH: ${{ github.workspace }}
 
   sast-sca:
     name: SAST & SCA
